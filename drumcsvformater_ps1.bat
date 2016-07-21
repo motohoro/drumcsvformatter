@@ -1,6 +1,9 @@
 @echo off
 echo スクリプトを実行しています…
-powershell -NoProfile -ExecutionPolicy Unrestricted .\drumcsvformatter.ps1
+REM Windows7プリインストールのpowershellのversionは2 (wikipedia)
+REM PowerShell2.0ではMTAモードがデフォルトだが、STAモードで実行しないと.NetDialogが表示されない http://funcs.org/907
+powershell -v 2 -STA -NoProfile -ExecutionPolicy RemoteSigned -File .\drumcsvformatter.ps1
+REM @powershell -NoProfile -ExecutionPolicy unrestricted -Command "Start-Process powershell.exe  -ArgumentList ""-file .\\drumcsvformatter.ps1"", "-Verb" ,"runas""
 echo 完了しました！
 pause > nul
 exit
