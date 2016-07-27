@@ -30,7 +30,7 @@ $cassettearray = New-Object object[] $cassettenum #num=352 ややこしいので
 $dialog = New-Object System.Windows.Forms.OpenFileDialog
 #$dialog.Filter = "画像ファイル(*.PNG;*.JPG;*.GIF)|*.PNG;*.JPG;*.JPEG;*.GIF"
 $dialog.Filter = "datファイル(*.dat)|*.dat"
-$dialog.InitialDirectory = "C:\"
+$dialog.InitialDirectory = [Environment]::GetFolderPath('MyComputer') #"C:\"
 $dialog.Title = "ファイルを選択してください"
 # ダイアログを表示
 if($dialog.ShowDialog() -eq "OK"){
@@ -106,17 +106,49 @@ if($dialog.ShowDialog() -eq "OK"){
 #    $OutputEncoding = [Text.Encoding]::Default #[console]::outputencoding
     $OutputEncoding = [console]::OutputEncoding;
 #    $clipdata.Replace("," ,"`t") | clip
+try{
     $clipdata | clip
+}catch [Exception]{
+
+}
     #or
 # アセンブリの読み込み
 Add-Type -Assembly System.Windows.Forms
 # 取得したアイテムをテキストとしてクリップボードへ送信
 [Windows.Forms.Clipboard]::SetText($clipdata)
 
-#    $excel = New-Object -ComObject Excel.Application
-#    $excel.Visible = $False
-#    $book = $excel.Workbooks.Open("C:\TEST\AAA.xlsx")
-#    $sheet = $book.WorkSheets.item("Sheet1")
+## https://social.technet.microsoft.com/Forums/windowsserver/en-US/8b6cddbb-6f6f-4488-aaf8-fc35c72c7cbe/copy-and-paste-in-excel-using-powershell?forum=winserverpowershell
+## https://letspowershell.blogspot.jp/2015/06/powershellexcel_11.html
+$dialog.Filter = "xlsmファイル(*.xlsm)|*.xlsm"
+
+# デスクトップなどの特殊フォルダーのパスを取得する - PowerShell 逆引きリファレンス http://powershell.web.fc2.com/Html/Data/2010/12/20/0000.html
+$dialog.InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
+$dialog.Title = "データを貼り付けるxlsmファイルを選択してください。すでに開いている場合はキャンセル"
+# ダイアログを表示
+if($dialog.ShowDialog() -eq "OK"){
+  # ［OK］ボタンがクリックされたら、選択されたファイル名（パス）を表示
+  $dialog.FileName + " が選択されました。"
+  $filepath = $dialog.FileName
+  try{
+        $excel = New-Object -ComObject Excel.Application
+        $excel.displayAlerts = $false 
+        $excel.Interactive = $false
+        $excel.Visible = $True ##$False
+
+        $book = $excel.Workbooks.Open($filepath)
+        $sheet = $book.WorkSheets.item("貼り付けシート")
+        $sheet.activate()
+        $sheet.Range("A1:A1").Select()
+        $sheet.Paste()
+        $excel.displayAlerts = $True
+        $excel.Interactive = $True
+    }catch [Exception]{
+        [System.Windows.Forms.MessageBox]::Show("excelに貼り付ける処理でエラーがありました。", "Excelでエラー")
+    }
+
+}
+[System.Windows.Forms.MessageBox]::Show("処理が完了しました。変換後のデータはクリップボードにあります", "終了")
+
 #    $sheet.Cells.Item(2,3) =  #Item(行, 列)。インデックスの番号は1から始まる。
 
 }
